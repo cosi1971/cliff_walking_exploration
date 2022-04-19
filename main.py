@@ -9,7 +9,7 @@ Author: W.J.A. van Heeswijk
 
 # import modules
 from plot import plot_steps, plot_rewards, console_output, plot_path
-from learning_algorithms import qlearning, sarsa, deepqlearning
+from learning_algorithms import qlearning#, sarsa, deepqlearning
 
 if __name__ == "__main__":
     """Learn cliff walking policies with SARSA and Q-learning"""
@@ -19,15 +19,15 @@ if __name__ == "__main__":
     alpha = 0.001  # Learning rate α 0.001
     epsilon = 0.05  # Exploration rate ε
 
-    # Run Deep Q-learning
-    q_network, env_deepqlearning, steps_cache_deepqlearning, rewards_cache_deepqlearning = deepqlearning(
-        num_episodes, gamma, alpha, epsilon
-    )
-
-    # Run SARSA
-    q_table_sarsa, env_sarsa, steps_cache_sarsa, rewards_cache_sarsa = sarsa(
-        num_episodes, gamma, 0.1, epsilon
-    )
+    # # Run Deep Q-learning
+    # q_network, env_deepqlearning, steps_cache_deepqlearning, rewards_cache_deepqlearning = deepqlearning(
+    #     num_episodes, gamma, alpha, epsilon
+    # )
+    #
+    # # Run SARSA
+    # q_table_sarsa, env_sarsa, steps_cache_sarsa, rewards_cache_sarsa = sarsa(
+    #     num_episodes, gamma, 0.1, epsilon
+    # )
 
     # Run Q-learning
     (
@@ -39,19 +39,19 @@ if __name__ == "__main__":
 
     # Print console output
     console_output(
-        env_sarsa,
+        # env_sarsa,
         env_qlearning,
-        env_deepqlearning,
-        steps_cache_sarsa,
+        # env_deepqlearning,
+        # steps_cache_sarsa,
         steps_cache_qlearning,
-        steps_cache_deepqlearning,
-        rewards_cache_sarsa,
+        # steps_cache_deepqlearning,
+        # rewards_cache_sarsa,
         rewards_cache_qlearning,
-        rewards_cache_deepqlearning,
+        # rewards_cache_deepqlearning,
         num_episodes,
     )
 
-    # Plot output
-    plot_steps(steps_cache_qlearning, steps_cache_sarsa, steps_cache_deepqlearning)
-    plot_rewards(rewards_cache_qlearning, rewards_cache_sarsa, rewards_cache_deepqlearning)
-    plot_path(env_sarsa, env_qlearning, env_deepqlearning)
+    # # Plot output
+    # plot_steps(steps_cache_qlearning, steps_cache_sarsa, steps_cache_deepqlearning)
+    # plot_rewards(rewards_cache_qlearning, rewards_cache_sarsa, rewards_cache_deepqlearning)
+    # plot_path(env_sarsa, env_qlearning, env_deepqlearning)

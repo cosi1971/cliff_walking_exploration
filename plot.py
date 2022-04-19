@@ -89,24 +89,24 @@ def plot_steps(
 
 
 def console_output(
-    env_sarsa: np.array,
+    # env_sarsa: np.array,
     env_qlearning: np.array,
-    env_deepqlearning: np.array,
-    steps_cache_sarsa: np.array,
+    # env_deepqlearning: np.array,
+    # steps_cache_sarsa: np.array,
     steps_cache_qlearning: np.array,
-    steps_cache_deepqlearning: np.array,
-    rewards_cache_sarsa: np.array,
+    # steps_cache_deepqlearning: np.array,
+    # rewards_cache_sarsa: np.array,
     rewards_cache_qlearning: np.array,
-    rewards_cache_deepqlearning: np.array,
+    # rewards_cache_deepqlearning: np.array,
     num_episodes: int,
 ) -> None:
     """Print path and key metrics in console"""
-    env_sarsa_str = env_to_text(env_sarsa)
-
-    print("SARSA action after {} iterations:".format(num_episodes), "\n")
-    print(env_sarsa_str, "\n")
-    print("Number of steps:", int(steps_cache_sarsa[-1]), "(min. = 13)", "\n")
-    print("Reward:", int(rewards_cache_sarsa[-1]), "(max. = -2)", "\n")
+    # env_sarsa_str = env_to_text(env_sarsa)
+    #
+    # print("SARSA action after {} iterations:".format(num_episodes), "\n")
+    # print(env_sarsa_str, "\n")
+    # print("Number of steps:", int(steps_cache_sarsa[-1]), "(min. = 13)", "\n")
+    # print("Reward:", int(rewards_cache_sarsa[-1]), "(max. = -2)", "\n")
 
     env_qlearning_str = env_to_text(env_qlearning)
 
@@ -115,12 +115,12 @@ def console_output(
     print("Number of steps:", int(steps_cache_qlearning[-1]), "(min. = 13)", "\n")
     print("Cumulative reward:", int(rewards_cache_qlearning[-1]), "(max. = -2)", "\n")
 
-    env_deepqlearning_str = env_to_text(env_deepqlearning)
-
-    print("Deep Q-learning action after {} iterations:".format(num_episodes), "\n")
-    print(env_deepqlearning_str, "\n")
-    print("Number of steps:", int(steps_cache_deepqlearning[-1]), "(min. = 13)", "\n")
-    print("Cumulative reward:", int(rewards_cache_deepqlearning[-1]), "(max. = -2)", "\n")
+    # env_deepqlearning_str = env_to_text(env_deepqlearning)
+    #
+    # print("Deep Q-learning action after {} iterations:".format(num_episodes), "\n")
+    # print(env_deepqlearning_str, "\n")
+    # print("Number of steps:", int(steps_cache_deepqlearning[-1]), "(min. = 13)", "\n")
+    # print("Cumulative reward:", int(rewards_cache_deepqlearning[-1]), "(max. = -2)", "\n")
 
     return
 

@@ -17,7 +17,7 @@ def epsilon_greedy_action(state: int, q_table: np.array, epsilon: float) -> int:
         # Select random action
         action = np.random.choice(4)
     else:  # Exploit:
-        # Select action with largest Q-value
+        # Select action with largest Q-valueup
         action = np.argmax(q_table[:, state])
 
     return action
