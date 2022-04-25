@@ -9,7 +9,7 @@ Author: W.J.A. van Heeswijk
 
 # import modules
 from plot import plot_steps, plot_rewards, console_output, plot_path
-from learning_algorithms import qlearning#, sarsa, deepqlearning
+from learning_algorithms import qlearning,  deepqlearning #sarsa,
 
 if __name__ == "__main__":
     """Learn cliff walking policies with SARSA and Q-learning"""

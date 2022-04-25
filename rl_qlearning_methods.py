@@ -1,9 +1,18 @@
 import numpy as np
-# import pandas as pd
+import pandas as pd
 import matplotlib.pyplot as plt
 import rl_config
 import seaborn as sns
 from loguru import logger
+
+# For deep learning
+import tensorflow as tf
+import tensorflow.keras as keras
+import tensorflow.keras.layers as layers
+import tensorflow.keras.initializers as initializers
+
+import random
+
 
 
 class volcanoRLQL(object):
@@ -350,3 +359,177 @@ class volcanoRLQL(object):
         )
         ax.set_title("Q-learning")
         plt.show()
+
+    def deepqlearning(self, agent_position, cliff_positions, goal_position):
+        gamma = self.gamma
+        alpha = self.alpha
+        epsilon = self.epsilon
+        num_episodes = self.number_of_episodes
+
+        def mean_squared_error_loss(q_value, reward):
+            """Compute mean squared error loss"""
+            loss_critic = 0.5 * (q_value - reward) ** 2
+
+            return loss_critic
+
+        def construct_q_network(state_dim, action_dim):
+            """Construct the critic network with q-values per action as output"""
+            inputs = layers.Input(shape=(state_dim,))  # input dimension
+            hidden1 = layers.Dense(
+                25, activation="relu", kernel_initializer=initializers.he_normal()
+            )(inputs)
+            hidden2 = layers.Dense(
+                25, activation="relu", kernel_initializer=initializers.he_normal()
+            )(hidden1)
+            hidden3 = layers.Dense(
+                25, activation="relu", kernel_initializer=initializers.he_normal()
+            )(hidden2)
+            q_values = layers.Dense(
+                action_dim, kernel_initializer=initializers.Zeros(), activation="linear"
+            )(hidden3)
+
+            q_network = keras.Model(inputs=inputs, outputs=[q_values])
+
+            return q_network
+
+        # Initialize environment and agent position
+        self.set_up_states(agent_position=agent_position, cliff_positions=cliff_positions,
+                               goal_position=goal_position)
+
+        opt = tf.keras.optimizers.Adam(learning_rate=alpha)
+
+        self.steps_cache = np.zeros(num_episodes)
+        self.rewards_cache = np.zeros(num_episodes)
+
+        state_dim = np.prod(self.env_dim)
+        action_dim = 4
+        self.q_network = construct_q_network(state_dim=state_dim, action_dim=action_dim)
+        target_network = tf.keras.models.clone_model(self.q_network)  # Copy network architecture
+        target_network.set_weights(self.q_network.get_weights())  # Copy network weights
+
+        replay_buffer = []
+        min_buffer_size = 10
+        batch_size = 5  # Number of observations per update
+        training = True
+        step_counter = 0
+        learning_frequency = batch_size  # Set equal to batch size for fair comparisons
+        update_frequency_target_network = 19
+
+        for episode in range(num_episodes):
+            if episode >= 1:
+                logger.info(str(episode), ":", str(self.steps_cache[episode - 1]))
+
+            # Set to target policy at final episodes
+            if episode == len(range(num_episodes)) - 100:
+                training = False
+
+            # Initialize environment and agent position
+            self.set_up_states(agent_position=agent_position, cliff_positions=cliff_positions,
+                               goal_position=goal_position)
+
+            while not self.game_over:
+                with tf.GradientTape() as tape:
+
+                    # Get state corresponding to agent position
+                    self.get_state(next=False)
+
+                    # Select action using ε-greedy policy
+                    # Obtain q-values from network
+                    state_input = np.zeros((1, state_dim))
+                    state_input[0, self.current_state] = 1
+                    q_values = tf.stop_gradient(self.q_network(state_input))
+
+                    sample_epsilon = np.random.rand()
+                    if sample_epsilon <= epsilon and training:
+                        # Select random action
+                        self.action = np.random.choice(action_dim)
+                        self.move_agent()
+                    else:
+                        # Select action with highest q-value
+                        self.action = np.argmax(q_values[0])
+                        self.move_agent()
+
+                    # Mark visited path
+                    self.mark_path()
+
+                    # Determine next state
+                    self.get_state(next=True)
+
+                    next_state_input = np.zeros((1, state_dim))
+                    next_state_input[0, self.next_state] = 1
+
+                    # Compute and store reward
+                    self.get_reward()
+                    self.rewards_cache[episode] += self.reward
+
+                    # Store observation in replay buffer
+                    observation = [self.current_state, self.action, self.reward, self.next_state]
+
+                    # replay_buffer = []
+                    replay_buffer.append(observation)
+
+                    # Check whether game is over
+                    self.check_game_over(number_of_steps=self.steps_cache[episode])
+
+                    step_counter += 1
+
+                    # Update network if (i) buffer sufficiently large and (ii) learning frequency matched and
+                    # (iii) in training
+                    if len(replay_buffer) >= min_buffer_size and step_counter % learning_frequency == 0 and training:
+
+                        observations = random.choices(replay_buffer, k=batch_size)
+                        loss_value = 0
+
+                        # Compute mean loss
+                        for observation in observations:
+                            self.current_state = observation[0]
+                            self.action = observation[1]
+                            self.reward = observation[2]
+                            self.next_state = observation[3]
+
+                            # Select next action with highest q-value
+                            # Check whether game is over (ignoring # steps)
+                            game_over = self.game_over
+                            self.check_game_over(number_of_steps=0)
+                            game_over_update = self.game_over
+                            self.game_over = game_over
+
+                            if game_over_update:
+                                next_q_value = 0
+                            else:
+                                next_state_input = np.zeros((1, state_dim))
+                                next_state_input[0, self.next_state] = 1
+                                next_q_values = tf.stop_gradient(
+                                    target_network(next_state_input)
+                                )
+                                next_action = np.argmax(next_q_values[0])
+                                next_q_value = next_q_values[0, next_action]
+
+                            observed_q_value = self.reward + (gamma * next_q_value)
+
+                            state_input = np.zeros((1, state_dim))
+                            state_input[0, self.current_state] = 1
+
+                            q_values = self.q_network(state_input)
+                            current_q_value = q_values[0, self.action]
+
+                            loss_value += mean_squared_error_loss(
+                                observed_q_value, current_q_value
+                            )
+
+                        # Compute mean loss value
+                        loss_value /= batch_size
+
+                        # Compute gradients
+                        grads = tape.gradient(
+                            loss_value, self.q_network.trainable_variables
+                        )
+
+                        # Apply gradients to update q-network weights
+                        opt.apply_gradients(zip(grads, self.q_network.trainable_variables))
+
+                        # Periodically update target network
+                        if episode % update_frequency_target_network == 0:
+                            target_network.set_weights(self.q_network.get_weights())
+
+                    self.steps_cache[episode] += 1
